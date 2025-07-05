@@ -1,0 +1,34 @@
+body 
+{
+    font-family: "Karla", sans-serif;
+    font-optical-sizing: auto;
+    background-color: #f0f0f0;
+}
+
+.app-main
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 90vh;
+}
+
+@media (max-width: 600px) {
+    .app-main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 90vh;
+    }
+
+    h2 
+    {
+        text-align: center;
+    }
+
+    body {
+        font-size: 16px;
+    }
+}
