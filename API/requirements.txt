@@ -1,4 +1,4 @@
 fastapi[standard]
 python-dotenv
 feedparser
-gunicorn==19.7.1
+gunicorn
