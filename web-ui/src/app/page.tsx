@@ -1,11 +1,12 @@
 
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "./Navbar/navbar";
 import BlogFeedSection from "@/components/BlogFeedSection";
-import { VStack, Box } from "@chakra-ui/react";
+import Hero from "@/components/Hero";
+import { VStack, Box, Container, Text } from "@chakra-ui/react";
+import useSWR from "swr";
 
-// Blog config array (add more as needed)
 const blogConfigs = [
   { name: "netflix", title: "Netflix Tech Blog" },
   { name: "airbnb", title: "Airbnb Engineering Blog" },
@@ -19,17 +20,46 @@ const blogConfigs = [
   { name: "dropbox", title: "Dropbox Tech Blog" },
 ];
 
+const fetcher = (...args: [RequestInfo, RequestInit?]) => fetch(...args).then(res => res.json());
+
 export default function Home() {
+  const { data: allFeeds, error } = useSWR(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/feeds/all`,
+    fetcher,
+    {
+      dedupingInterval: 5 * 60 * 1000, // 5 minutes
+      revalidateOnFocus: false, // Don't refetch on window focus
+      revalidateIfStale: false, // Don't refetch if stale
+      revalidateOnReconnect: false, // Don't refetch on reconnect
+      shouldRetryOnError: false, // Don't retry on error
+    }
+  );
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <VStack minH="100vh" gap={0}>
       <Navbar />
-      <Box w="full" pt={{ base: 20, md: 24 }}>
-        {blogConfigs.map(cfg => (
-          <BlogFeedSection key={cfg.name} blogName={cfg.name} displayTitle={cfg.title} />
+      <Hero />
+      <Box w="full" pt={{ base: 2, md: 2 }}>
+        {mounted && blogConfigs.map(cfg => (
+          <BlogFeedSection
+            key={cfg.name}
+            displayTitle={cfg.title}
+            feed={allFeeds && allFeeds[cfg.name] ? allFeeds[cfg.name] : []}
+          />
         ))}
       </Box>
-      <Box as="footer" textAlign="center" p={4} fontSize="sm" color="gray.500">
-        &copy; 2025 RaceIntel. All rights reserved.
+      <Box as="footer" pt={{ base: 8, md: 12 }} pb={{ base: 10, md: 16 }}>
+        <Container className="container-max" textAlign="center">
+          <Box className="hairline" mb={4} />
+          <Text fontSize="sm" color="gray.500">
+            © 2025 RaceIntel. Crafted for a calm reading experience.
+          </Text>
+        </Container>
       </Box>
     </VStack>
   );

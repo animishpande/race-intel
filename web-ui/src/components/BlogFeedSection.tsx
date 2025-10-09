@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import useSWR from "swr";
-import { Flex, Heading, HStack, Link, VStack, Text, Box } from "@chakra-ui/react";
+import { Flex, Heading, HStack, Link, Text, Box, Container } from "@chakra-ui/react";
 
 const fetcher = (...args: [RequestInfo, RequestInit?]) =>
   fetch(...args).then((res) => res.json());
@@ -12,35 +12,45 @@ const BlogCard = ({ blog }: { blog: any }) => (
     rel="noopener noreferrer"
     textDecoration="none"
     _hover={{ textDecoration: "none" }}
+    _focusVisible={{ outline: "none" }}
   >
     <Box
-      minW={{ base: "280px", md: "320px" }}
-      maxW={{ base: "280px", md: "320px" }}
-      minH={{ base: "180px", md: "180px" }}
-      bg="whiteAlpha.100"
-      borderRadius="lg"
-      boxShadow="md"
-      p={6}
+      minW={{ base: "300px", md: "360px" }}
+      maxW={{ base: "300px", md: "360px" }}
+      minH={{ base: "200px", md: "220px" }}
+  bg="var(--card-bg)"
+  border="1px solid var(--card-border)"
+      borderRadius="2xl"
+      p={{ base: 5, md: 6 }}
       display="flex"
       flexDirection="column"
-      justifyContent="flex-start"
-      transition="transform 0.2s, box-shadow 0.2s"
+      justifyContent="space-between"
+      position="relative"
+      transition="transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease, outline-color 200ms ease"
       _hover={{
-        transform: "scale(1.04)",
-        boxShadow: "lg",
+        transform: "translateY(-2px)",
+        boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
+        borderColor: "rgba(255,255,255,0.2)",
       }}
+      _active={{ transform: "translateY(0px) scale(0.99)" }}
+      _focusWithin={{ boxShadow: "0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent)" }}
       cursor="pointer"
+      backdropFilter="blur(8px)"
+      css={{ WebkitBackdropFilter: "blur(8px)" }}
+      scrollSnapAlign="start"
     >
+      <Box position="absolute" inset={0} borderRadius="inherit" pointerEvents="none" bgGradient="linear(to-b, rgba(255,255,255,0.06), transparent)" />
       <Heading
         size="md"
-        color="white"
+  color="var(--card-fg)"
         mb={3}
-        lineHeight="1.3"
+        lineHeight="1.25"
+        letterSpacing="-0.01em"
         wordBreak="break-word"
       >
         {blog.title}
       </Heading>
-      <Text color="gray.300" fontSize="sm" wordBreak="break-word">
+  <Text color="gray.500" _dark={{ color: "gray.400" }} fontSize="sm" wordBreak="break-word">
         {blog.published
           ? new Date(blog.published).toLocaleString("en-US", {
               year: "numeric",
@@ -56,50 +66,40 @@ const BlogCard = ({ blog }: { blog: any }) => (
   </Link>
 );
 
-export default function BlogFeedSection({ blogName, displayTitle }: { blogName: string; displayTitle: string }) {
-  const [feed, setFeed] = useState<any[]>([]);
-  const { data, error, isLoading } = useSWR(
-    `${process.env.NEXT_PUBLIC_API_URL}/getBlogs/${blogName}`,
-    fetcher
-  );
+interface BlogFeedSectionProps {
+  displayTitle: string;
+  feed: any[];
+}
 
-  useEffect(() => {
-    if (data) {
-      setFeed(data);
-    }
-  }, [data]);
-
-  if (error) {
-    return <></>;
-  }
-
+export default function BlogFeedSection({ displayTitle, feed }: BlogFeedSectionProps) {
+  if (!feed) return null;
   return (
-    <Flex
-      direction="column"
-      align="center"
-      justify="center"
-      p={{ base: 8, sm: 5 }}
-      gap={8}
-      fontFamily="sans-serif"
-      w="full"
-    >
-      <Heading mb={6}>{displayTitle}</Heading>
+    <Box as="section" py={{ base: 8, md: 12 }} id={displayTitle.toLowerCase().replace(/\s+/g, '-') === 'netflix-tech-blog' ? 'feeds' : undefined}>
+      <Container className="container-max">
+        <Heading
+          mb={{ base: 4, md: 6 }}
+          size={{ base: "lg", md: "xl" }}
+          letterSpacing="-0.02em"
+        >
+          {displayTitle}
+        </Heading>
+      </Container>
       <Box
         w="full"
         overflowX="auto"
-        px={{ base: 4, md: 8 }}
+        px={{ base: 3, md: 6 }}
         css={{
           "&::-webkit-scrollbar": { display: "none" },
           scrollbarWidth: "none",
           msOverflowStyle: "none",
         }}
       >
-        <HStack gap={6} pb={4} minW="max-content">
-          {(feed && Array.isArray((feed as any).blogs) ? (feed as any).blogs : []).map((item: any, index: number) => (
+        <HStack gap={{ base: 4, md: 6 }} pb={4} minW="max-content" scrollSnapType="x mandatory">
+          {feed.map((item: any, index: number) => (
             <BlogCard key={index} blog={item} />
           ))}
         </HStack>
       </Box>
-    </Flex>
+    </Box>
   );
 }

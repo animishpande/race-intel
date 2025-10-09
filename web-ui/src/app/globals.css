@@ -1,29 +1,72 @@
-@import url('https://fonts.googleapis.com/css2?family=Alan+Sans:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* Dark mode defaults */
+  --background: radial-gradient(1200px 800px at 50% -10%, #1d1d1f 0%, #0b0b0c 45%, #000000 100%);
+  --foreground: #f5f5f7;
+  --accent: #0a84ff; /* iOS blue */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Modern minimalistic gradient black background */
-    --background: linear-gradient(135deg, #000000 0%, #232323 100%);
-    --foreground: #fafafa;
-  }
+  --nav-bg: rgba(0, 0, 0, 0.25);
+  --nav-border: rgba(255, 255, 255, 0.08);
+  --nav-fg: #ffffff;
+  --card-bg: rgba(255, 255, 255, 0.06);
+  --card-border: rgba(255, 255, 255, 0.12);
+  --card-fg: #ffffff;
+  --muted-fg: #a1a1a6;
+  --hero-text-from: #ffffff;
+  --hero-text-to: #cfd3da;
+  /* Buttons (dark) */
+  --btn-primary-bg: color-mix(in oklab, var(--accent) 20%, transparent);
+  --btn-primary-border: rgba(255, 255, 255, 0.18);
+  --btn-primary-hover-bg: color-mix(in oklab, var(--accent) 28%, transparent);
+  --btn-primary-fg: #ffffff;
+  --btn-secondary-bg: rgba(255, 255, 255, 0.1);
+  --btn-secondary-border: rgba(255, 255, 255, 0.18);
+  --btn-secondary-hover-bg: rgba(255, 255, 255, 0.16);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  /* font-family: Arial, Helvetica, sans-serif; */
-  font-family: 'Alan Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 18%, transparent);
+}
+
+/* Subtle container widths to mimic Apple’s generous spacing */
+.container-max {
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+/* Hairline divider */
+.hairline {
+  height: 1px;
+  background: color-mix(in oklab, #ffffff 14%, transparent);
+}
+
+/* Animated subtle gradient overlay for depth */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -20% -10% auto -10%;
+  height: 60vh;
+  background: radial-gradient(600px 300px at 20% -10%, rgba(10, 132, 255, 0.12), transparent 60%),
+              radial-gradient(600px 300px at 80% -15%, rgba(99, 102, 241, 0.10), transparent 60%);
+  filter: blur(30px);
+  pointer-events: none;
+  animation: bg-float 16s ease-in-out infinite alternate;
+}
+
+@keyframes bg-float {
+  from { transform: translateY(-6px) translateX(-8px) scale(1.02); opacity: 0.85; }
+  to   { transform: translateY(6px) translateX(8px) scale(1.00); opacity: 1; }
 }
