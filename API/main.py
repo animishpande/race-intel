@@ -36,8 +36,14 @@ if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=port)
 
 # Simple in-memory cache
+
+# Simple in-memory cache
 cache: Dict[str, Dict] = {}
-CACHE_TTL = timedelta(minutes=5)
+# Increase cache TTL to 30 minutes
+CACHE_TTL = timedelta(minutes=30)
+
+# Background feed refresh interval (seconds)
+FEED_REFRESH_INTERVAL = 1800  # 30 minutes
 
 # RSS Feed configuration
 RSS_FEEDS = {
@@ -80,11 +86,17 @@ async def fetch_rss_feed(client: httpx.AsyncClient, name: str, url: str) -> Dict
             "timestamp": datetime.now().isoformat()
         }
 
-async def fetch_all_feeds_parallel(feeds: Dict[str, str]) -> Dict:
-    """Fetch all RSS feeds in parallel (SSL verification disabled)"""
+
+# Limit concurrency for feed fetching
+async def fetch_all_feeds_parallel(feeds: Dict[str, str], max_concurrent: int = 3) -> Dict:
+    """Fetch all RSS feeds in parallel with limited concurrency (SSL verification disabled)"""
+    semaphore = asyncio.Semaphore(max_concurrent)
     async with httpx.AsyncClient(verify=False) as client:
+        async def sem_fetch(name, url):
+            async with semaphore:
+                return await fetch_rss_feed(client, name, url)
         tasks = [
-            fetch_rss_feed(client, name, url)
+            sem_fetch(name, url)
             for name, url in feeds.items()
             if url  # Only fetch if URL is configured
         ]
@@ -113,23 +125,9 @@ def is_cache_valid(cache_entry: Dict) -> bool:
 # API ENDPOINTS
 # =============================================
 
-@app.get("/api/feeds/all")
-async def get_all_feeds(force_refresh: bool = False):
-    """
-    Fetch all RSS feeds in parallel
-    Query param: force_refresh=true to bypass cache
-    Returns: {feed_name: [item, ...], ...}
-    """
-    # Check cache first
-    if not force_refresh and "all_feeds" in cache:
-        if is_cache_valid(cache["all_feeds"]):
-            return JSONResponse(
-                content=cache["all_feeds"]["data"],
-                headers={"X-Cache": "HIT"}
-            )
-    # Fetch all feeds in parallel
-    results = await fetch_all_feeds_parallel(RSS_FEEDS)
-    # Parse each feed to blog item format
+
+# Helper to parse feed results
+def parse_feed_results(results: Dict) -> Dict:
     parsed = {}
     for name, result in results.items():
         if result.get("status") == "success":
@@ -147,6 +145,34 @@ async def get_all_feeds(force_refresh: bool = False):
             parsed[name] = items
         else:
             parsed[name] = []
+    return parsed
+
+@app.get("/api/feeds/all")
+async def get_all_feeds(force_refresh: bool = False):
+    """
+    Fetch all RSS feeds in parallel
+    Query param: force_refresh=true to bypass cache
+    Returns: {feed_name: [item, ...], ...}
+    """
+    # Check cache first
+    if not force_refresh and "all_feeds" in cache:
+        if is_cache_valid(cache["all_feeds"]):
+            return JSONResponse(
+                content=cache["all_feeds"]["data"],
+                headers={"X-Cache": "HIT"}
+            )
+        else:
+            # Serve stale cache if available while refreshing in background
+            stale_data = cache["all_feeds"]["data"]
+            # Start background refresh
+            asyncio.create_task(background_refresh_all_feeds())
+            return JSONResponse(
+                content=stale_data,
+                headers={"X-Cache": "STALE"}
+            )
+    # Fetch all feeds in parallel
+    results = await fetch_all_feeds_parallel(RSS_FEEDS)
+    parsed = parse_feed_results(results)
     # Cache the results
     cache["all_feeds"] = {
         "data": parsed,
@@ -156,6 +182,7 @@ async def get_all_feeds(force_refresh: bool = False):
         content=parsed,
         headers={"X-Cache": "MISS"}
     )
+
 
 @app.get("/api/feeds/{feed_name}")
 async def get_single_feed(feed_name: str, force_refresh: bool = False):
@@ -175,6 +202,14 @@ async def get_single_feed(feed_name: str, force_refresh: bool = False):
             return JSONResponse(
                 content=cache[cache_key]["data"],
                 headers={"X-Cache": "HIT"}
+            )
+        else:
+            # Serve stale cache if available while refreshing in background
+            stale_data = cache[cache_key]["data"]
+            asyncio.create_task(background_refresh_single_feed(feed_name, url, cache_key))
+            return JSONResponse(
+                content=stale_data,
+                headers={"X-Cache": "STALE"}
             )
     # Fetch single feed
     async with httpx.AsyncClient(verify=False) as client:
@@ -202,6 +237,7 @@ async def get_single_feed(feed_name: str, force_refresh: bool = False):
         headers={"X-Cache": "MISS"}
     )
 
+
 @app.post("/api/feeds/batch")
 async def get_batch_feeds(feed_names: List[str]):
     """
@@ -218,25 +254,65 @@ async def get_batch_feeds(feed_names: List[str]):
         raise HTTPException(status_code=400, detail="No valid feeds specified")
     # Fetch selected feeds in parallel
     results = await fetch_all_feeds_parallel(valid_feeds)
-    # Parse each feed to blog item format
-    parsed = {}
-    for name, result in results.items():
-        if result.get("status") == "success":
-            feed = feedparser.parse(result["data"])
-            items = []
-            for entry in feed.entries:
-                item = {
-                    "title": entry.title,
-                    "link": entry.link,
-                    "tags": entry.tags if hasattr(entry, 'tags') else [],
-                    "published": entry.published if hasattr(entry, 'published') else "",
-                    "updated": entry.updated if hasattr(entry, 'updated') else ""
-                }
-                items.append(item)
-            parsed[name] = items
-        else:
-            parsed[name] = []
+    parsed = parse_feed_results(results)
     return JSONResponse(content=parsed)
+# =============================
+# Background Feed Refresh Logic
+# =============================
+
+import threading
+
+def run_async_in_thread(coro):
+    """Run async coroutine in a background thread."""
+    def runner():
+        asyncio.run(coro)
+    t = threading.Thread(target=runner, daemon=True)
+    t.start()
+
+async def background_refresh_all_feeds():
+    """Refresh all feeds and update cache in background."""
+    results = await fetch_all_feeds_parallel(RSS_FEEDS)
+    parsed = parse_feed_results(results)
+    cache["all_feeds"] = {
+        "data": parsed,
+        "cached_at": datetime.now().isoformat()
+    }
+
+async def background_refresh_single_feed(feed_name, url, cache_key):
+    async with httpx.AsyncClient(verify=False) as client:
+        result = await fetch_rss_feed(client, feed_name, url)
+    items = []
+    if result.get("status") == "success":
+        feed = feedparser.parse(result["data"])
+        for entry in feed.entries:
+            item = {
+                "title": entry.title,
+                "link": entry.link,
+                "tags": entry.tags if hasattr(entry, 'tags') else [],
+                "published": entry.published if hasattr(entry, 'published') else "",
+                "updated": entry.updated if hasattr(entry, 'updated') else ""
+            }
+            items.append(item)
+    cache[cache_key] = {
+        "data": items,
+        "cached_at": datetime.now().isoformat()
+    }
+
+def periodic_background_refresh():
+    """Periodically refresh all feeds in the background."""
+    async def periodic():
+        while True:
+            await background_refresh_all_feeds()
+            await asyncio.sleep(FEED_REFRESH_INTERVAL)
+    run_async_in_thread(periodic())
+
+# Warm up cache at startup
+def warm_up_cache():
+    run_async_in_thread(background_refresh_all_feeds())
+
+# Start background refresh and warmup at import time
+warm_up_cache()
+periodic_background_refresh()
 
 @app.get("/api/health")
 async def health_check():
