@@ -44,23 +44,21 @@ export default function Home() {
     setMounted(true);
   }, []);
 
-  // Minimal loading screen
+  // Enhanced loading screen with animation
   if (isLoading || (!allFeeds && !error)) {
     return (
-      <ChakraVStack minH="100vh" justify="flex-start" align="center" gap={0} position="relative">
+      <ChakraVStack minH="100vh" justify="center" align="center" gap={0} position="relative">
         <Navbar />
         <Hero />
-        
         <Center w="full" flex={1} py={20}>
-          <ChakraBox textAlign="center">
+          <ChakraBox textAlign="center" className="fade-in">
             <Spinner
-              size="xl"
               color="var(--accent)"
-              borderWidth="2px"
+              size="xl"
               className="pulse"
             />
-            <ChakraText fontSize="17px" color="var(--text-secondary)" mt={4}>
-              Loading...
+            <ChakraText fontSize="18px" color="var(--text-secondary)" mt={4}>
+              Loading, please wait...
             </ChakraText>
           </ChakraBox>
         </Center>
