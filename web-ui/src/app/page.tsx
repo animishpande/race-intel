@@ -55,7 +55,10 @@ export default function Home() {
             <Spinner
               color="var(--accent)"
               size="xl"
-              className="pulse"
+              borderWidth="3px"
+              css={{
+                animation: "spin 0.8s linear infinite",
+              }}
             />
             <ChakraText fontSize="18px" color="var(--text-secondary)" mt={4}>
               Loading, please wait...
