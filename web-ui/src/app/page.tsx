@@ -1,29 +1,30 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Spinner, Center, VStack as ChakraVStack, Box as ChakraBox, Text as ChakraText } from "@chakra-ui/react";
+import { Spinner, Center, VStack as ChakraVStack, Box as ChakraBox, Text as ChakraText, Heading } from "@chakra-ui/react";
 import Navbar from "./Navbar/navbar";
 import BlogFeedSection from "@/components/BlogFeedSection";
 import Hero from "@/components/Hero";
+import ScrollToTop from "@/components/ScrollToTop";
 import { VStack, Box, Container, Text } from "@chakra-ui/react";
 import useSWR from "swr";
 
 const blogConfigs = [
   { name: "netflix", title: "Netflix Tech Blog" },
-  { name: "airbnb", title: "Airbnb Engineering Blog" },
+  { name: "nvidia", title: "NVIDIA Developer Blog" },
   { name: "facebook", title: "Facebook Engineering Blog" },
+  { name: "google", title: "Google Developer Blog" },
+  { name: "cloudflare", title: "Cloudflare Blog" },
+  { name: "airbnb", title: "Airbnb Engineering Blog" },
   { name: "spotify", title: "Spotify Engineering Blog" },
   { name: "github", title: "GitHub Engineering Blog" },
-  { name: "google", title: "Google Developer Blog" },
   { name: "pinterest", title: "Pinterest Engineering Blog" },
   { name: "slack", title: "Slack Engineering Blog" },
-  { name: "cloudflare", title: "Cloudflare Blog" },
   { name: "dropbox", title: "Dropbox Tech Blog" },
+  // { name: "uber", title: "Uber Engineering Blog" },
 ];
 
 const fetcher = (...args: [RequestInfo, RequestInit?]) =>
   fetch(...args).then((res) => res.json());
-
-
 
 export default function Home() {
   const { data: allFeeds, error, isLoading } = useSWR(
@@ -43,57 +44,59 @@ export default function Home() {
     setMounted(true);
   }, []);
 
-  // Aesthetic loading screen
+  // Minimal loading screen
   if (isLoading || (!allFeeds && !error)) {
     return (
-      <ChakraVStack minH="100vh" justify="center" align="center" gap={0}>
+      <ChakraVStack minH="100vh" justify="flex-start" align="center" gap={0} position="relative">
         <Navbar />
         <Hero />
-        <Center w="full" h="60vh">
+        
+        <Center w="full" flex={1} py={20}>
           <ChakraBox textAlign="center">
-            <Spinner size="xl" color="blue.400" mb={6} />
-            <ChakraText fontSize="xl" fontWeight="bold" color="blue.500">
-              Loading fresh tech blogs...
-            </ChakraText>
-            <ChakraText fontSize="md" color="gray.400" mt={2}>
-              Please wait while we fetch the latest updates from your favorite sources.
+            <Spinner
+              size="xl"
+              color="var(--accent)"
+              borderWidth="2px"
+              className="pulse"
+            />
+            <ChakraText fontSize="17px" color="var(--text-secondary)" mt={4}>
+              Loading...
             </ChakraText>
           </ChakraBox>
         </Center>
-        <ChakraBox as="footer" pt={{ base: 8, md: 12 }} pb={{ base: 10, md: 16 }}>
-          <Container className="container-max" textAlign="center">
-            <ChakraBox className="hairline" mb={4} />
-            <ChakraText fontSize="sm" color="gray.500">
-              © 2025 RaceIntel. Crafted for a calm reading experience.
-            </ChakraText>
-          </Container>
-        </ChakraBox>
       </ChakraVStack>
     );
   }
 
   return (
-    <VStack minH="100vh" gap={0}>
-      <Navbar />
-      <Hero />
-      <Box w="full" pt={{ base: 2, md: 2 }}>
-        {mounted &&
-          blogConfigs.map((cfg) => (
-            <BlogFeedSection
-              key={cfg.name}
-              displayTitle={cfg.title}
-              feed={allFeeds && allFeeds[cfg.name] ? allFeeds[cfg.name] : []}
-            />
-          ))}
-      </Box>
-      <Box as="footer" pt={{ base: 8, md: 12 }} pb={{ base: 10, md: 16 }}>
-        <Container className="container-max" textAlign="center">
-          <Box className="hairline" mb={4} />
-          <Text fontSize="sm" color="gray.500">
-            © 2025 RaceIntel. Crafted for a calm reading experience.
-          </Text>
-        </Container>
-      </Box>
-    </VStack>
+    <>
+      <ScrollToTop />
+      <VStack minH="100vh" gap={0} position="relative">
+        <Navbar />
+        <Hero />
+        
+        {/* Main Content */}
+        <Box w="full" pt={{ base: 2, md: 4 }}>
+          {mounted &&
+            blogConfigs.map((cfg) => (
+              <BlogFeedSection
+                key={cfg.name}
+                displayTitle={cfg.title}
+                feed={allFeeds && allFeeds[cfg.name] ? allFeeds[cfg.name] : []}
+              />
+            ))}
+        </Box>
+
+        {/* Minimal Footer */}
+        <Box as="footer" w="full" mt="auto" pt={{ base: 16, md: 20 }} pb={{ base: 8, md: 10 }}>
+          <Container className="container-max" textAlign="center">
+            <Box className="hairline" mb={4} />
+            <Text fontSize="12px" color="var(--text-tertiary)" fontWeight="400">
+              © 2025 RaceIntel. All rights reserved.
+            </Text>
+          </Container>
+        </Box>
+      </VStack>
+    </>
   );
 }

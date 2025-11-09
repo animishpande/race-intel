@@ -1,30 +1,51 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  /* Dark mode defaults */
-  --background: radial-gradient(1200px 800px at 50% -10%, #1d1d1f 0%, #0b0b0c 45%, #000000 100%);
+  /* Apple-inspired minimal theme */
+  --background: #000000;
   --foreground: #f5f5f7;
-  --accent: #0a84ff; /* iOS blue */
-  --font-sans: var(--font-geist-sans);
+  --accent: #0071e3; /* Apple blue */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: var(--font-geist-mono);
-  --nav-bg: rgba(0, 0, 0, 0.25);
-  --nav-border: rgba(255, 255, 255, 0.08);
-  --nav-fg: #ffffff;
-  --card-bg: rgba(255, 255, 255, 0.06);
-  --card-border: rgba(255, 255, 255, 0.12);
-  --card-fg: #ffffff;
-  --muted-fg: #a1a1a6;
-  --hero-text-from: #ffffff;
-  --hero-text-to: #cfd3da;
-  /* Buttons (dark) */
-  --btn-primary-bg: color-mix(in oklab, var(--accent) 20%, transparent);
-  --btn-primary-border: rgba(255, 255, 255, 0.18);
-  --btn-primary-hover-bg: color-mix(in oklab, var(--accent) 28%, transparent);
+  
+  /* Navigation */
+  --nav-bg: rgba(0, 0, 0, 0.8);
+  --nav-border: rgba(255, 255, 255, 0.1);
+  --nav-fg: #f5f5f7;
+  
+  /* Liquid Glass Cards */
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --card-fg: #f5f5f7;
+  --card-hover-bg: rgba(255, 255, 255, 0.08);
+  --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  
+  /* Text */
+  --text-primary: #f5f5f7;
+  --text-secondary: #86868b;
+  --text-tertiary: #6e6e73;
+  
+  /* Buttons */
+  --btn-primary-bg: #0071e3;
+  --btn-primary-hover-bg: #0077ed;
   --btn-primary-fg: #ffffff;
-  --btn-secondary-bg: rgba(255, 255, 255, 0.1);
-  --btn-secondary-border: rgba(255, 255, 255, 0.18);
-  --btn-secondary-hover-bg: rgba(255, 255, 255, 0.16);
+  
+  --btn-secondary-bg: rgba(255, 255, 255, 0.08);
+  --btn-secondary-hover-bg: rgba(255, 255, 255, 0.12);
+  
+  /* Tags */
+  --tag-bg: rgba(255, 255, 255, 0.1);
+  --tag-border: rgba(255, 255, 255, 0.15);
+  --tag-fg: #f5f5f7;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
@@ -33,40 +54,102 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  min-height: 100vh;
 }
 
 ::selection {
-  background: color-mix(in oklab, var(--accent) 18%, transparent);
+  background: rgba(0, 113, 227, 0.3);
+  color: #ffffff;
 }
 
-/* Subtle container widths to mimic Apple’s generous spacing */
+/* Container System */
 .container-max {
-  max-width: 1200px;
+  max-width: 980px;
   margin-inline: auto;
-  padding-inline: 1rem;
+  padding-inline: clamp(1rem, 5vw, 2rem);
 }
 
-/* Hairline divider */
+.container-wide {
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 5vw, 2.5rem);
+}
+
+/* Dividers */
 .hairline {
   height: 1px;
-  background: color-mix(in oklab, #ffffff 14%, transparent);
+  background: rgba(255, 255, 255, 0.1);
 }
 
-/* Animated subtle gradient overlay for depth */
+/* Subtle ambient light - Apple style */
 body::before {
   content: "";
   position: fixed;
-  inset: -20% -10% auto -10%;
-  height: 60vh;
-  background: radial-gradient(600px 300px at 20% -10%, rgba(10, 132, 255, 0.12), transparent 60%),
-              radial-gradient(600px 300px at 80% -15%, rgba(99, 102, 241, 0.10), transparent 60%);
-  filter: blur(30px);
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1200px;
+  height: 600px;
+  background: radial-gradient(ellipse at top, rgba(0, 113, 227, 0.05) 0%, transparent 60%);
   pointer-events: none;
-  animation: bg-float 16s ease-in-out infinite alternate;
+  z-index: 0;
 }
 
-@keyframes bg-float {
-  from { transform: translateY(-6px) translateX(-8px) scale(1.02); opacity: 0.85; }
-  to   { transform: translateY(6px) translateX(8px) scale(1.00); opacity: 1; }
+/* Liquid Glass Effect */
+.liquid-glass {
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+/* Smooth Scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar - minimalist */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Focus Styles - Apple minimal */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Fade In Animation - subtle */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Loading pulse - Apple style */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

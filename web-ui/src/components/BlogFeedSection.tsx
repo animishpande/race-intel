@@ -1,70 +1,72 @@
-import React, { useEffect, useState } from "react";
-import useSWR from "swr";
-import { Flex, Heading, HStack, Link, Text, Box, Container } from "@chakra-ui/react";
+import React from "react";
+import { Heading, HStack, Link, Text, Box, Container, VStack } from "@chakra-ui/react";
 
-const fetcher = (...args: [RequestInfo, RequestInit?]) =>
-  fetch(...args).then((res) => res.json());
-
-const BlogCard = ({ blog }: { blog: any }) => (
-  <Link
-    href={blog.link}
-    target="_blank"
-    rel="noopener noreferrer"
-    textDecoration="none"
-    _hover={{ textDecoration: "none" }}
-    _focusVisible={{ outline: "none" }}
-  >
-    <Box
-      minW={{ base: "300px", md: "360px" }}
-      maxW={{ base: "300px", md: "360px" }}
-      minH={{ base: "200px", md: "220px" }}
-  bg="var(--card-bg)"
-  border="1px solid var(--card-border)"
-      borderRadius="2xl"
-      p={{ base: 5, md: 6 }}
-      display="flex"
-      flexDirection="column"
-      justifyContent="space-between"
-      position="relative"
-      transition="transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease, outline-color 200ms ease"
-      _hover={{
-        transform: "translateY(-2px)",
-        boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
-        borderColor: "rgba(255,255,255,0.2)",
-      }}
-      _active={{ transform: "translateY(0px) scale(0.99)" }}
-      _focusWithin={{ boxShadow: "0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent)" }}
-      cursor="pointer"
-      backdropFilter="blur(8px)"
-      css={{ WebkitBackdropFilter: "blur(8px)" }}
-      scrollSnapAlign="start"
+const BlogCard = ({ blog }: { blog: any }) => {
+  return (
+    <Link
+      href={blog.link}
+      target="_blank"
+      rel="noopener noreferrer"
+      textDecoration="none"
+      _hover={{ textDecoration: "none" }}
+      _focusVisible={{ outline: "none" }}
+      display="block"
     >
-      <Box position="absolute" inset={0} borderRadius="inherit" pointerEvents="none" bgGradient="linear(to-b, rgba(255,255,255,0.06), transparent)" />
-      <Heading
-        size="md"
-  color="var(--card-fg)"
-        mb={3}
-        lineHeight="1.25"
-        letterSpacing="-0.01em"
-        wordBreak="break-word"
+      <Box
+        minW={{ base: "280px", md: "340px" }}
+        maxW={{ base: "280px", md: "340px" }}
+        h={{ base: "180px", md: "200px" }}
+        bg="var(--card-bg)"
+        border="1px solid var(--card-border)"
+        borderRadius="16px"
+        p={{ base: 5, md: 6 }}
+        position="relative"
+        overflow="hidden"
+        transition="all 0.3s cubic-bezier(0.28, 0.11, 0.32, 1)"
+        _hover={{
+          bg: "var(--card-hover-bg)",
+          transform: "translateY(-2px)",
+          boxShadow: "var(--card-hover-shadow)",
+        }}
+        cursor="pointer"
+        className="liquid-glass"
+        scrollSnapAlign="start"
       >
-        {blog.title}
-      </Heading>
-  <Text color="gray.500" _dark={{ color: "gray.400" }} fontSize="sm" wordBreak="break-word">
-        {blog.published
-          ? new Date(blog.published).toLocaleString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: true,
-            })
-          : ""}
-      </Text>
-    </Box>
-  </Link>
-);
+        <VStack align="start" justify="space-between" h="full" position="relative" zIndex={1}>
+          <VStack align="start" gap={2} flex={1}>
+            {/* Title */}
+            <Heading
+              fontSize={{ base: "17px", md: "19px" }}
+              color="var(--text-primary)"
+              lineHeight="1.3"
+              letterSpacing="-0.01em"
+              fontWeight="600"
+              css={{
+                display: '-webkit-box',
+                WebkitLineClamp: '3',
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              {blog.title}
+            </Heading>
+          </VStack>
+
+          {/* Date */}
+          <Text color="var(--text-tertiary)" fontSize="13px" fontWeight="400">
+            {blog.published
+              ? new Date(blog.published).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              : ""}
+          </Text>
+        </VStack>
+      </Box>
+    </Link>
+  );
+};
 
 interface BlogFeedSectionProps {
   displayTitle: string;
@@ -72,34 +74,60 @@ interface BlogFeedSectionProps {
 }
 
 export default function BlogFeedSection({ displayTitle, feed }: BlogFeedSectionProps) {
-  if (!feed) return null;
+  if (!feed || feed.length === 0) return null;
+  
   return (
-    <Box as="section" py={{ base: 8, md: 12 }} id={displayTitle.toLowerCase().replace(/\s+/g, '-') === 'netflix-tech-blog' ? 'feeds' : undefined}>
-      <Container className="container-max">
-        <Heading
-          mb={{ base: 4, md: 6 }}
-          size={{ base: "lg", md: "xl" }}
-          letterSpacing="-0.02em"
-        >
-          {displayTitle}
-        </Heading>
+    <Box
+      as="section"
+      py={{ base: 8, md: 12 }}
+      id={displayTitle.toLowerCase().replace(/\s+/g, '-') === 'netflix-tech-blog' ? 'feeds' : undefined}
+      position="relative"
+    >
+      <Container className="container-wide">
+        <VStack align="start" gap={{ base: 4, md: 5 }}>
+          {/* Section Header */}
+          <Heading
+            fontSize={{ base: "32px", md: "40px" }}
+            letterSpacing="-0.02em"
+            fontWeight="600"
+            color="var(--text-primary)"
+          >
+            {displayTitle}
+          </Heading>
+
+          {/* Cards Container */}
+          <Box
+            w="full"
+            overflowX="auto"
+            css={{
+              "&::-webkit-scrollbar": {
+                height: "6px",
+              },
+              "&::-webkit-scrollbar-track": {
+                background: "transparent",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                background: "rgba(255, 255, 255, 0.2)",
+                borderRadius: "3px",
+              },
+              "&::-webkit-scrollbar-thumb:hover": {
+                background: "rgba(255, 255, 255, 0.3)",
+              },
+            }}
+          >
+            <HStack
+              gap={{ base: 4, md: 5 }}
+              pb={3}
+              minW="max-content"
+              scrollSnapType="x mandatory"
+            >
+              {feed.map((item: any, index: number) => (
+                <BlogCard key={index} blog={item} />
+              ))}
+            </HStack>
+          </Box>
+        </VStack>
       </Container>
-      <Box
-        w="full"
-        overflowX="auto"
-        px={{ base: 3, md: 6 }}
-        css={{
-          "&::-webkit-scrollbar": { display: "none" },
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
-        }}
-      >
-        <HStack gap={{ base: 4, md: 6 }} pb={4} minW="max-content" scrollSnapType="x mandatory">
-          {feed.map((item: any, index: number) => (
-            <BlogCard key={index} blog={item} />
-          ))}
-        </HStack>
-      </Box>
     </Box>
   );
 }

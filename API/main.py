@@ -57,7 +57,9 @@ RSS_FEEDS = {
     "pinterest": os.getenv("PINTEREST_FEED_URL"),
     "slack": os.getenv("SLACK_FEED_URL"),
     "cloudflare": os.getenv("CLOUDFLARE_FEED_URL"),
+    "nvidia": os.getenv("NVIDIA_FEED_URL"),
     # Add more feeds here
+    # "uber": os.getenv("UBER_FEED_URL"),
 }
 
 async def fetch_rss_feed(client: httpx.AsyncClient, name: str, url: str) -> Dict:
