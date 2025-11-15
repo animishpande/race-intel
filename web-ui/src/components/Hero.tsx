@@ -32,7 +32,7 @@ export default function Hero() {
             className="fade-in"
             style={{ animationDelay: "0.1s" }}
           >
-            Curated updates from leading tech companies.
+            Read engineering blogs from leading tech companies.
           </Text>
         </VStack>
       </Container>

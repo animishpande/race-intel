@@ -10,9 +10,11 @@ import useSWR from "swr";
 
 const blogConfigs = [
   { name: "netflix", title: "Netflix Tech Blog" },
+  { name: "uber", title: "Uber Engineering Blog" },
   { name: "nvidia", title: "NVIDIA Developer Blog" },
   { name: "facebook", title: "Facebook Engineering Blog" },
   { name: "google", title: "Google Developer Blog" },
+  { name: "microsoft", title: "Microsoft Dev Blog" },
   { name: "cloudflare", title: "Cloudflare Blog" },
   { name: "airbnb", title: "Airbnb Engineering Blog" },
   { name: "spotify", title: "Spotify Engineering Blog" },
@@ -20,7 +22,6 @@ const blogConfigs = [
   { name: "pinterest", title: "Pinterest Engineering Blog" },
   { name: "slack", title: "Slack Engineering Blog" },
   { name: "dropbox", title: "Dropbox Tech Blog" },
-  // { name: "uber", title: "Uber Engineering Blog" },
 ];
 
 const fetcher = (...args: [RequestInfo, RequestInit?]) =>

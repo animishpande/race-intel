@@ -58,14 +58,19 @@ RSS_FEEDS = {
     "slack": os.getenv("SLACK_FEED_URL"),
     "cloudflare": os.getenv("CLOUDFLARE_FEED_URL"),
     "nvidia": os.getenv("NVIDIA_FEED_URL"),
+    "microsoft": os.getenv("MICROSOFT_FEED_URL"),
+    "uber": os.getenv("UBER_FEED_URL"),
     # Add more feeds here
-    # "uber": os.getenv("UBER_FEED_URL"),
 }
 
 async def fetch_rss_feed(client: httpx.AsyncClient, name: str, url: str) -> Dict:
     """Fetch a single RSS feed with error handling (SSL verification disabled)"""
+    headers = {
+        "User-Agent": "Mozilla/5.0 (compatible; RaceIntelBot/1.0; +https://raceintel.cloud)",
+        "Accept": "application/rss+xml, application/xml;q=0.9, */*;q=0.8"
+    }
     try:
-        response = await client.get(url, timeout=10.0)
+        response = await client.get(url, timeout=10.0, headers=headers)
         response.raise_for_status()
         return {
             "name": name,
@@ -218,8 +223,10 @@ async def get_single_feed(feed_name: str, force_refresh: bool = False):
         result = await fetch_rss_feed(client, feed_name, url)
     # Parse to blog item format
     items = []
+    print(result)
     if result.get("status") == "success":
         feed = feedparser.parse(result["data"])
+        print(result["data"])
         for entry in feed.entries:
             item = {
                 "title": entry.title,
