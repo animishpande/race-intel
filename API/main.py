@@ -132,6 +132,10 @@ def is_cache_valid(cache_entry: Dict) -> bool:
 # API ENDPOINTS
 # =============================================
 
+# Check if API is running on root
+@app.get("/")
+def read_root():
+    return {"message": "Hello, World!"}
 
 # Helper to parse feed results
 def parse_feed_results(results: Dict) -> Dict:
